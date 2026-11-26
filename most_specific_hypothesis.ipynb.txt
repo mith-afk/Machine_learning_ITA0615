@@ -1,0 +1,113 @@
+{
+  "nbformat": 4,
+  "nbformat_minor": 0,
+  "metadata": {
+    "colab": {
+      "provenance": [],
+      "authorship_tag": "ABX9TyPJyyGgQ8M1NJjGazB2l9pP",
+      "include_colab_link": true
+    },
+    "kernelspec": {
+      "name": "python3",
+      "display_name": "Python 3"
+    },
+    "language_info": {
+      "name": "python"
+    }
+  },
+  "cells": [
+    {
+      "cell_type": "markdown",
+      "metadata": {
+        "id": "view-in-github",
+        "colab_type": "text"
+      },
+      "source": [
+        "<a href=\"https://colab.research.google.com/github/harish0785/ITA0615_MACHINE_LEARNING/blob/main/most_specific_hypothesis.ipynb\" target=\"_parent\"><img src=\"https://colab.research.google.com/assets/colab-badge.svg\" alt=\"Open In Colab\"/></a>"
+      ]
+    },
+    {
+      "cell_type": "code",
+      "execution_count": 1,
+      "metadata": {
+        "colab": {
+          "base_uri": "https://localhost:8080/"
+        },
+        "id": "qPDC-u1o-cqM",
+        "outputId": "36155f6a-c29d-4c71-ddfd-ba23dea61f65"
+      },
+      "outputs": [
+        {
+          "output_type": "stream",
+          "name": "stdout",
+          "text": [
+            "Initial Hypothesis (h0): ['0', '0', '0', '0', '0']\n",
+            "--------------------------------------------------\n",
+            "Step 1 (Positive Example): ['Warm', 'Normal', 'Strong', 'Warm', 'Same'] -> Hypothesis: ['Warm', 'Normal', 'Strong', 'Warm', 'Same']\n",
+            "Step 2 (Positive Example): ['Warm', 'High', 'Strong', 'Warm', 'Same'] -> Hypothesis: ['Warm', '?', 'Strong', 'Warm', 'Same']\n",
+            "Step 3 (Negative Example): ['Cold', 'High', 'Strong', 'Warm', 'Change'] -> Hypothesis: ['Warm', '?', 'Strong', 'Warm', 'Same'] (Ignored)\n",
+            "Step 4 (Positive Example): ['Warm', 'High', 'Strong', 'Cool', 'Change'] -> Hypothesis: ['Warm', '?', 'Strong', '?', '?']\n",
+            "\n",
+            "==================================================\n",
+            "FINAL MOST SPECIFIC HYPOTHESIS: ['Warm', '?', 'Strong', '?', '?']\n"
+          ]
+        }
+      ],
+      "source": [
+        "import csv\n",
+        "\n",
+        "def find_s_algorithm(concepts, target):\n",
+        "    # Initialize the hypothesis with the most specific hypothesis '0' (or 'ϕ')\n",
+        "    num_attributes = len(concepts[0])\n",
+        "    hypothesis = ['0'] * num_attributes\n",
+        "\n",
+        "    print(f\"Initial Hypothesis (h0): {hypothesis}\\n\" + \"-\" * 50)\n",
+        "\n",
+        "    for i, example in enumerate(concepts):\n",
+        "        # FIND-S only considers positive training examples\n",
+        "        if target[i].strip().lower() == \"yes\":\n",
+        "            for x in range(num_attributes):\n",
+        "                # If hypothesis attribute is unset, set it to the attribute value of the example\n",
+        "                if hypothesis[x] == '0':\n",
+        "                    hypothesis[x] = example[x]\n",
+        "                # If attribute value in example differs, generalize it with '?'\n",
+        "                elif hypothesis[x] != example[x]:\n",
+        "                    hypothesis[x] = '?'\n",
+        "            print(f\"Step {i+1} (Positive Example): {example} -> Hypothesis: {hypothesis}\")\n",
+        "        else:\n",
+        "            print(f\"Step {i+1} (Negative Example): {example} -> Hypothesis: {hypothesis} (Ignored)\")\n",
+        "\n",
+        "    return hypothesis\n",
+        "\n",
+        "# --- Setup Dataset from Image ---\n",
+        "csv_filename = \"enjoysport.csv\"\n",
+        "\n",
+        "# Create CSV file matching the table\n",
+        "with open(csv_filename, 'w', newline='') as file:\n",
+        "    writer = csv.writer(file)\n",
+        "    writer.writerow([\"Sky\", \"AirTemp\", \"Humidity\", \"Wind\", \"Water\", \"Forecast\", \"EnjoySport\"])\n",
+        "    writer.writerow([\"Sunny\", \"Warm\", \"Normal\", \"Strong\", \"Warm\", \"Same\", \"Yes\"])\n",
+        "    writer.writerow([\"Sunny\", \"Warm\", \"High\", \"Strong\", \"Warm\", \"Same\", \"Yes\"])\n",
+        "    writer.writerow([\"Rainy\", \"Cold\", \"High\", \"Strong\", \"Warm\", \"Change\", \"No\"])\n",
+        "    writer.writerow([\"Sunny\", \"Warm\", \"High\", \"Strong\", \"Cool\", \"Change\", \"Yes\"])\n",
+        "\n",
+        "# Read attributes and target labels from CSV\n",
+        "concepts = []\n",
+        "target = []\n",
+        "\n",
+        "with open(csv_filename, 'r') as file:\n",
+        "    reader = csv.reader(file)\n",
+        "    header = next(reader)\n",
+        "    for row in reader:\n",
+        "        concepts.append(row[1:-1])  # Exclude Example ID and Label\n",
+        "        target.append(row[-1])       # Target label (EnjoySport)\n",
+        "\n",
+        "# Run FIND-S\n",
+        "most_specific_hypothesis = find_s_algorithm(concepts, target)\n",
+        "\n",
+        "print(\"\\n\" + \"=\" * 50)\n",
+        "print(\"FINAL MOST SPECIFIC HYPOTHESIS:\", most_specific_hypothesis)"
+      ]
+    }
+  ]
+}
